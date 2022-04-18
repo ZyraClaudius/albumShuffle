@@ -12,6 +12,11 @@
     justify-self: center;
 }
 
+.Authenticator p {
+    text-align: center;
+    line-height: 2em;
+}
+
 @media only screen and (orientation: portrait){
     .Authenticator {
         width: 90vw;
@@ -22,6 +27,7 @@
     height: 2em;
     width: auto;
     margin: 0 5px;
+    vertical-align: middle;
 }
 
 .oneLine {

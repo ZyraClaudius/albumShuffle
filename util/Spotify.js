@@ -11,7 +11,8 @@ export class Spotify {
         if(haveToken) {
             return accessToken;
         } else {
-            window.location = `https://accounts.spotify.com/authorize?client_id=${clientID}&response_type=token&scope=user-library-read&redirect_uri=${redirectURI}`;
+            let scope = 'user-library-read playlist-read-collaborative playlist-read-private';
+            window.location = `https://accounts.spotify.com/authorize?client_id=${clientID}&response_type=token&scope=${scope}&redirect_uri=${redirectURI}`;
         }
     }
 
@@ -48,30 +49,38 @@ export class Spotify {
     }
 
     /*Gets and returns a list of a user's saved albums*/
-    static async getAlbums() {
+    static async getAlbums(get) {
         if(remainingAlbums){
             console.log(`Returning ${remainingAlbums.length} albums remaining`)
-            return remainingAlbums;
+            return remainingAlbums.slice();
         }
         let ourToken = this.getAccessToken();
         let allAlbums = [];
-        let fetchURL = "https://api.spotify.com/v1/me/albums?offset=0&limit=50";
+        let fetchURL = `https://api.spotify.com/v1/me/${get}?offset=0&limit=50`;
         while(fetchURL) {
             let albums = await fetch(fetchURL,{headers:{'Authorization':`Bearer ${ourToken}`}});
             let jsonAlbums = await albums.json();
             let albumList = jsonAlbums.items;
-            albumList = albumList.filter(album => album.album.album_type==="album");
+            if(get==='albums') {
+                albumList = albumList.filter(album => album.album.album_type==="album");
+            }
+            if(get==='playlists') {
+                albumList = albumList.filter(playlist => playlist.images.length>0);
+            }
             allAlbums = allAlbums.concat(albumList);
             fetchURL = jsonAlbums.next;
         }
         allAlbums = Spotify.shuffleArray(allAlbums);
-        remainingAlbums = allAlbums;
+        remainingAlbums = allAlbums.slice();
         return allAlbums;
     }
 
     /*Selects a random album and returns this and the 20 before (for the scroll animation)*/
-    static async getAlbumScroll() {
-        let allAlbums = await Spotify.getAlbums();
+    static async getAlbumScroll(get) {
+        let allAlbums = await Spotify.getAlbums(get);
+        if(allAlbums.length===0) {
+            return [];
+        }
         //console.log(allAlbums);
         //console.log(allAlbums.length);
         let index = Math.floor(Math.random()*allAlbums.length);
@@ -79,6 +88,8 @@ export class Spotify {
         console.log("Removing album")
         Spotify.removeAlbum(index);
         index++;
+        console.log(index);
+        console.log(allAlbums.length);
         if(index===allAlbums.length){
             console.log("looping")
             index = 0;
@@ -98,5 +109,64 @@ export class Spotify {
     static removeAlbum(index) {
         remainingAlbums.splice(index,1);
         console.log(remainingAlbums);
+    }
+
+    static clearRemaining() {
+        remainingAlbums = undefined;
+    }
+
+    static async searchArtists(q) {
+        let ourToken = this.getAccessToken();
+        let fetchURL = `https://api.spotify.com/v1/search?q=${q}&type=artist&limit=5`
+        let results = await fetch(fetchURL,{headers:{'Authorization':`Bearer ${ourToken}`}});
+        results = await results.json();
+        let artists = results.artists.items;
+        return artists;
+    }
+
+    static async getArtistAlbums(id) {
+        let albums;
+        if(remainingAlbums) {
+            albums = remainingAlbums;
+        } else {
+            let ourToken = this.getAccessToken();
+            //console.log(ourToken);
+            albums = [];
+            let fetchURL = `https://api.spotify.com/v1/artists/${id}/albums?include_groups=album,single`;
+            while(fetchURL) {
+                let results = await fetch(fetchURL,{headers:{'Authorization':`Bearer ${ourToken}`}});
+                results = await results.json();
+                console.log(results);
+                fetchURL = results.next;
+                results = results.items.flat();
+                albums = albums.concat(results);
+                console.log(fetchURL);
+            }
+            console.log(albums);
+            albums = Spotify.shuffleArray(albums);
+            remainingAlbums = albums.slice();
+        }
+        if(albums.length===0) {
+            return [];
+        }
+        let index = Math.floor(Math.random()*albums.length);
+        Spotify.removeAlbum(index);
+        index++;
+        console.log(albums);
+        if(index>=albums.length){
+            console.log("looping")
+            index = 0;
+        }
+        //console.log(randomIndex);
+        let albumScroll = [];
+        for(let i=0; i<20; i++) {
+            while(index<0) {
+                index=albums.length+index;
+                console.log("loopyloo");
+            }
+            albumScroll.unshift(albums[index]);
+            index --;
+        }
+        return albumScroll;
     }
 }

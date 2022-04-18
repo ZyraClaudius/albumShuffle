@@ -8,7 +8,8 @@ export class App extends React.Component {
   constructor(props) {
     super(props);
     let haveToken = Spotify.checkAccessToken();
-    this.state = {authenticator : !haveToken};
+    this.state = {authenticator : !haveToken, type:'albums'};
+    this.selectorOnChange = this.selectorOnChange.bind(this);
   }
 
   render() {
@@ -21,7 +22,7 @@ export class App extends React.Component {
     } else {
       jsx = [
         jsx,
-        <Shuffle key="2" getAlbumScroll={Spotify.getAlbumScroll}/>
+        <Shuffle key={this.state.type} type={this.state.type} selectorOnChange = {this.selectorOnChange} getAlbumScroll={Spotify.getAlbumScroll}/>
       ];
     }
     return (
@@ -32,5 +33,13 @@ export class App extends React.Component {
         </footer>
       </div>
     );
+  }
+
+  selectorOnChange(e) {
+    Spotify.clearRemaining();
+    console.log("changing");
+    let value = e.target.value;
+    console.log(value);
+    this.setState({type:value});
   }
 }

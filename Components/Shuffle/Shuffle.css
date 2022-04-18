@@ -3,8 +3,21 @@
     width: 100vw;
     display: grid;
     grid-auto-flow: column;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto auto 1fr;
     grid-row-gap: 10px; 
+}
+
+.Searching {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: auto 1fr;
+    grid-row-gap: 10px;
+    justify-content: center;
+}
+
+.Searching input {
+    align-self: start;
+    margin-left: 10px;
 }
 
 #albumScroll {
@@ -14,6 +27,11 @@
     grid-template-columns: repeat(auto-fill,32vw);
     grid-column-gap: 2vw;
     grid-auto-flow: column;
+}
+
+#noAlbums {
+    color: rgb(0,0,255);
+    font-size: 2em;
 }
 
 #cover1 {
@@ -46,7 +64,7 @@
 
 img {
     width: 32vw;
-    height: auto;
+    height: 32vw;
 }
 
 @keyframes scroll {
@@ -59,4 +77,12 @@ img {
     right: 578vw;
     animation-name: scroll;
     animation-duration: 5s;
+}
+
+a {
+    display: block;
+    width: 100vw;
+    text-decoration: underline;
+    color: rgb(0,0,255);
+    cursor:pointer;
 }
